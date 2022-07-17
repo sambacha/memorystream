@@ -28,16 +28,17 @@ declare class StringDecoder {
 
 declare class MemoryStream extends Duplex {
   constructor(
-    super_: any | undefined,
+  //  super_: any | undefined,
+    super_: (data?: DataType | DataType[], options?: Options) => void,
     data?: DataType | DataType[],
     options?: Options,
-    // super_: (data?: DataType | DataType[], options?: Options) => void
+   
   );
 }
 
 //Stream.super_ === EventEmitter
 
-function MemoryReadableStream(super_, data, options) {
+ function MemoryReadableStream(super_, data, options) {
   if (!(this instanceof MemoryReadableStream))
     return new (MemoryReadableStream as any)(data, options);
   MemoryReadableStream['super_'].call(this, options);
@@ -100,9 +101,10 @@ MemoryReadableStream.prototype.init =
     };
 
 function MemoryStream(data, options) {
+  const ofOptions: EmptyObject = {};
   if (!(this instanceof MemoryStream)) return new MemoryStream(data, options);
 
-  options = options || {};
+  options = options || ofOptions;
 
   var readable = options.hasOwnProperty('readable') ? options.readable : true,
     writable = options.hasOwnProperty('writable') ? options.writable : true;
@@ -119,7 +121,8 @@ function MemoryStream(data, options) {
 }
 
 MemoryStream.createReadStream = function (data, options) {
-  options = options || {};
+  const ofOptions: EmptyObject = {};
+  options = options || ofOptions;
   options.readable = true;
   options.writable = false;
 
@@ -127,7 +130,8 @@ MemoryStream.createReadStream = function (data, options) {
 };
 
 MemoryStream.createWriteStream = function (data, options) {
-  options = options || {};
+  const ofOptions: EmptyObject = {};
+  options = options || ofOptions;
   options.readable = false;
   options.writable = true;
 
@@ -136,7 +140,7 @@ MemoryStream.createWriteStream = function (data, options) {
 
 MemoryReadableStream.prototype._read = MemoryDuplexStream.prototype._read =
   function _read(n) {
-    var self = this,
+    let self = this,
       frequence = self.frequence || 0,
       wait_data =
         this instanceof Duplex && !this._writableState.finished ? true : false;
@@ -188,7 +192,7 @@ MemoryWritableStream.prototype._write = MemoryDuplexStream.prototype._write =
   };
 
 MemoryDuplexStream.prototype.end = function (super_, chunk, encoding, cb) {
-  var self = this;
+  let self = this;
   // @ts-expect-error: ts-mismatch
   return MemoryDuplexStream.super_.prototype.end.call(
     this,
@@ -205,8 +209,8 @@ MemoryReadableStream.prototype._getQueueSize =
   MemoryWritableStream.prototype._getQueueSize =
   MemoryDuplexStream.prototype._getQueueSize =
     function () {
-      var queuesize = 0,
-        i;
+      let queuesize = 0,
+        i: number;
       for (i = 0; i < this.queue.length; i++) {
         queuesize += Array.isArray(this.queue[i])
           ? this.queue[i][0].length
@@ -222,9 +226,9 @@ MemoryWritableStream.prototype.toString =
   MemoryDuplexStream.prototype.getAll =
   MemoryReadableStream.prototype.getAll =
     function () {
-      var self = this,
+      let self = this,
         ret = '';
-      this.queue.forEach((data) => {
+      this.queue.forEach((data: string) => {
         ret += data;
       });
       return ret;
@@ -234,11 +238,11 @@ MemoryWritableStream.prototype.toBuffer =
   MemoryDuplexStream.prototype.toBuffer =
   MemoryReadableStream.prototype.toBuffer =
     function () {
-      var buffer = new (Buffer.from as any)(this._getQueueSize()),
+      let buffer = new (Buffer.from as any)(this._getQueueSize()),
         currentOffset = 0;
 
       this.queue.forEach((data) => {
-        var data_buffer =
+        let data_buffer =
           data instanceof Buffer ? data : new (Buffer.from as any)(data);
         data_buffer.copy(buffer, currentOffset);
         currentOffset += data.length;
@@ -246,4 +250,5 @@ MemoryWritableStream.prototype.toBuffer =
       return buffer;
     };
 
-export default MemoryStream;
+
+export { MemoryDuplexStream, MemoryStream, MemoryWritableStream, MemoryReadableStream, StringDecoder,   }
