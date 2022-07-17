@@ -1,17 +1,18 @@
+/* test */
+const http = require('http');
+const MemoryStream = require('../index');
+const util = require('util');
 
-var http = require('http'),
-    MemoryStream = require('../index'),
-    util = require('util');
-
-var options = {
+let options = {
 	host: 'google.com'
 };
-var memStream = new MemoryStream(null,{
+
+const memStream = new MemoryStream(null, {
     readable : false
 });
 
-var req = http.request(options, function(res) {
-	util.pump(res, memStream);
+const req = http.request(options, function(res) {
+	res.pump(memStream);
 	res.on('end',function(){
 	    console.log(memStream.toString());
 	});
